@@ -1,37 +1,131 @@
-# Python Grid Walker — เต่าเดิน Grid กินแอปเปิ้ล
+# PyGrid
 
-เว็บเกมสำหรับ ม.1 สอดคล้อง **ว ๔.๒ ม.๑/๑** (ออกแบบอัลกอริทึมด้วยแนวคิดเชิงนามธรรม)  
-ซ้าย: แสดงผลเกม Grid / ขวา: ช่องพิมพ์โค้ด (เดินหน้า, เลี้ยว, เก็บแอปเปิ้ล)  
-มีหลาย Level, โหมดสาธิต และข้อความตัวชี้วัด
+**Thai / ภาษาไทย:** เกมเต่าเดิน Grid เพื่อฝึกทักษะการคิดเชิงอัลกอริทึม
 
-## รัน locally
+**English:** A grid-based turtle movement game for learning algorithmic thinking.
+
+---
+
+## About / เกี่ยวกับโปรเจกต์
+
+**Thai:**
+เว็บเกมสำหรับนักเรียนชั้นมัธยมศึกษาปีที่ 1 สอดคล้องกับตัวชี้วัด ว 4.2 ม.1/1 (ออกแบบอัลกอริทึมด้วยแนวคิดเชิงนามธรรม) ผู้เล่นเขียนคำสั่งภาษาไทยเพื่อควบคุมเต่าให้เดินเก็บแอปเปิ้ลบน Grid
+
+**English:**
+A web-based educational game for Grade 7 students aligned with Thai curriculum standard (Wo 4.2 Mo.1/1 - Algorithm design with abstract thinking). Players write Thai-language commands to control a turtle collecting apples on a grid.
+
+---
+
+## Features / คุณสมบัติ
+
+**Thai:**
+- ควบคุมเต่าด้วยคำสั่งภาษาไทย: เดินหน้า(n), เลี้ยวซ้าย(), เลี้ยวขวา()
+- 12 ด่านที่มีความยากเพิ่มขึ้นตามลำดับ
+- ระบบกำแพง กุญแจ/ประตู และประตูเทเลพอร์ต
+- บันทึกความคืบหน้าอัตโนมัติในเบราว์เซอร์
+- รองรับการแสดงผลทุกขนาดหน้าจอ
+
+**English:**
+- Control turtle with Thai commands: forward(n), turnLeft(), turnRight()
+- 12 progressive levels with increasing difficulty
+- Game mechanics: walls, keys/doors, teleportation portals
+- Auto-save progress using browser localStorage
+- Responsive design for all screen sizes
+
+---
+
+## Tech Stack / เทคโนโลยีที่ใช้
+
+- React 18
+- Vite
+- Tailwind CSS
+
+---
+
+## Live Demo / ทดลองเล่น
+
+https://kritternai.github.io/PyGrid/
+
+---
+
+## Installation / การติดตั้ง
+
+### Prerequisites / สิ่งที่ต้องมี
+
+- Node.js (v18 or higher recommended)
+- npm
+
+### Local Development / รันบนเครื่อง
 
 ```bash
 npm install
 npm run dev
 ```
 
+Open browser at `http://localhost:5173`
+
 เปิดเบราว์เซอร์ที่ `http://localhost:5173`
 
-## Build
+### Build / สร้างไฟล์สำหรับ Production
 
 ```bash
 npm run build
 ```
 
-ผลลัพธ์อยู่ในโฟลเดอร์ `dist/`
+Output will be in the `dist/` folder.
 
-## Deploy ขึ้น GitHub Pages
+ผลลัพธ์จะอยู่ในโฟลเดอร์ `dist/`
 
-1. สร้าง repo บน GitHub (เช่นชื่อ `PythonTurtle`)
-2. แก้ `package.json`: ตั้ง `"homepage": "https://<username>.github.io/PythonTurtle/"` ให้ตรงกับ username และชื่อ repo
-3. แก้ `vite.config.js`: ตั้ง `base: '/PythonTurtle/'` ให้ตรงกับชื่อ repo (ถ้าชื่อ repo ต่างกัน)
-4. Push โค้ดขึ้น GitHub
-5. รัน:
+---
 
-```bash
-npm run deploy
-```
+## Deployment / การ Deploy
 
-6. ใน GitHub ไปที่ Settings → Pages → Source เลือก branch **gh-pages** โฟลเดอร์ **/ (root)**  
-7. เปิด `https://<username>.github.io/PythonTurtle/`
+### Deploy to GitHub Pages
+
+1. Create a repository on GitHub (e.g., `PyGrid`)
+
+   สร้าง repo บน GitHub (เช่น `PyGrid`)
+
+2. Update `package.json`:
+
+   แก้ไข `package.json`:
+
+   ```json
+   "homepage": "https://<username>.github.io/PyGrid/"
+   ```
+
+3. Update `vite.config.js`:
+
+   แก้ไข `vite.config.js`:
+
+   ```js
+   base: '/PyGrid/'
+   ```
+
+4. Push code to GitHub
+
+   Push โค้ดขึ้น GitHub
+
+5. Run deploy command:
+
+   รันคำสั่ง deploy:
+
+   ```bash
+   npm run deploy
+   ```
+
+6. In GitHub, go to Settings > Pages > Source, select branch `gh-pages` and folder `/ (root)`
+
+   ใน GitHub ไปที่ Settings > Pages > Source เลือก branch `gh-pages` โฟลเดอร์ `/ (root)`
+
+7. Access your site at `https://<username>.github.io/PyGrid/`
+
+   เข้าใช้งานที่ `https://<username>.github.io/PyGrid/`
+
+---
+
+## License / สัญญาอนุญาต
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+MIT License - ดูรายละเอียดในไฟล์ [LICENSE](LICENSE)
