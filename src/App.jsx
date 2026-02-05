@@ -168,6 +168,9 @@ const PortalIcon = ({ color = 'blue', className = 'w-10 h-10' }) => {
   )
 }
 
+// LocalStorage key for completed levels
+const STORAGE_KEY = 'turtleGame_completedLevels'
+
 export default function App() {
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0)
   const level = LEVELS[currentLevelIndex]
@@ -183,9 +186,35 @@ export default function App() {
   const [showCoords, setShowCoords] = useState(true)
   const [collectedApples, setCollectedApples] = useState([]) // indices of collected apples
   const [collectedKeys, setCollectedKeys] = useState([]) // keyIds of collected keys
+  const [completedLevels, setCompletedLevels] = useState(() => {
+    // Load from localStorage on init
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const editorRef = useRef(null)
   const gameAreaRef = useRef(null)
   const [cellSize, setCellSize] = useState(CELL_SIZE_DEFAULT)
+
+  // Save completed levels to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(completedLevels))
+    } catch {
+      // Ignore storage errors
+    }
+  }, [completedLevels])
+
+  // Mark level as completed
+  const markLevelComplete = useCallback((levelId) => {
+    setCompletedLevels((prev) => {
+      if (prev.includes(levelId)) return prev
+      return [...prev, levelId]
+    })
+  }, [])
 
   useEffect(() => {
     const el = gameAreaRef.current
@@ -215,7 +244,7 @@ export default function App() {
     setCollectedKeys([])
   }, [currentLevelIndex])
 
-  const handleLevelChange = (index) => {
+  const handleLevelChange = useCallback((index) => {
     if (isPlaying) return
     setCurrentLevelIndex(index)
     const L = LEVELS[index]
@@ -227,7 +256,15 @@ export default function App() {
     setActiveLine(-1)
     setCollectedApples([])
     setCollectedKeys([])
-  }
+  }, [isPlaying])
+
+  // Go to next level
+  const goToNextLevel = useCallback(() => {
+    if (currentLevelIndex < LEVELS.length - 1) {
+      handleLevelChange(currentLevelIndex + 1)
+      setMessage(null)
+    }
+  }, [currentLevelIndex, handleLevelChange])
 
   const parseAndRun = async () => {
     if (isPlaying) return
@@ -360,8 +397,9 @@ export default function App() {
             const isLastLevel = currentLevelIndex === LEVELS.length - 1
             const successText = isLastLevel
               ? 'ยอดเยี่ยม! เก็บแอปเปิ้ลครบแล้ว สิ่งที่เรียนวันนี้ เอาไปใช้ควบคุมการเคลื่อนที่ในเกมได้'
-              : 'เก่งมาก! เก็บแอปเปิ้ลครบแล้ว ลองด่านถัดไปนะ'
-            setMessage({ type: 'success', text: successText })
+              : 'เก่งมาก! เก็บแอปเปิ้ลครบแล้ว'
+            markLevelComplete(level.id)
+            setMessage({ type: 'success', text: successText, levelComplete: true })
             setIsPlaying(false)
             return
           } else {
@@ -445,18 +483,26 @@ export default function App() {
         <div className={`flex-1 flex flex-row min-h-0 p-2 sm:p-3 overflow-hidden ${demoMode ? 'md:flex-1' : ''}`} style={{ background: 'linear-gradient(to bottom right, #e0f7fa, #b2dfdb)' }}>
           {/* Vertical tabs — left strip */}
           <aside className="flex flex-col gap-1 sm:gap-2 flex-shrink-0 w-12 sm:w-14 md:w-16 py-1 sm:py-2" aria-label="เลือกด่าน">
-            {LEVELS.map((L, idx) => (
-              <button
-                key={L.id}
-                type="button"
-                onClick={() => handleLevelChange(idx)}
-                disabled={isPlaying}
-                title={`ด่าน ${L.id}`}
-                className={`min-h-[2.5rem] sm:min-h-[3rem] rounded-r-xl sm:rounded-r-2xl text-base sm:text-lg font-bold transition-all shadow-md disabled:opacity-60 flex items-center justify-center py-1.5 ${currentLevelIndex === idx ? 'bg-[#ff9800] text-white shadow-lg ring-2 ring-amber-300' : 'bg-white/90 border border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'}`}
-              >
-                {L.id}
-              </button>
-            ))}
+            {LEVELS.map((L, idx) => {
+              const isCompleted = completedLevels.includes(L.id)
+              return (
+                <button
+                  key={L.id}
+                  type="button"
+                  onClick={() => handleLevelChange(idx)}
+                  disabled={isPlaying}
+                  title={`ด่าน ${L.id}${isCompleted ? ' ✓' : ''}`}
+                  className={`min-h-[2.5rem] sm:min-h-[3rem] rounded-r-xl sm:rounded-r-2xl text-base sm:text-lg font-bold transition-all shadow-md disabled:opacity-60 flex flex-col items-center justify-center py-1 gap-0 ${currentLevelIndex === idx ? 'bg-[#ff9800] text-white shadow-lg ring-2 ring-amber-300' : isCompleted ? 'bg-green-100 border border-green-300 text-green-700 hover:bg-green-50' : 'bg-white/90 border border-slate-200 text-slate-600 hover:bg-white hover:border-slate-300'}`}
+                >
+                  <span>{L.id}</span>
+                  {isCompleted && (
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
           </aside>
 
           {/* Content: grid + message + hint */}
@@ -631,7 +677,12 @@ export default function App() {
               <section className="rounded-lg border border-indigo-200 bg-white/90 px-2 py-2 shadow-sm">
                 <p className="text-[10px] font-semibold text-indigo-700 mb-2 uppercase tracking-wide">คำสั่ง</p>
                 <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                  {['เดินหน้า(n)', 'เลี้ยวซ้าย()', 'เลี้ยวขวา()', 'เก็บแอปเปิ้ล()'].map((cmd) => (
+                  {[
+                    { cmd: 'เดินหน้า(n)', label: 'เดินหน้า(n)' },
+                    { cmd: 'เลี้ยวซ้าย()', label: 'เลี้ยวซ้าย' },
+                    { cmd: 'เลี้ยวขวา()', label: 'เลี้ยวขวา' },
+                    { cmd: 'เก็บแอปเปิ้ล()', label: 'เก็บแอปเปิ้ล' },
+                  ].map(({ cmd, label }) => (
                     <button
                       key={cmd}
                       type="button"
@@ -639,7 +690,7 @@ export default function App() {
                       disabled={isPlaying}
                       className="h-8 sm:h-9 flex items-center justify-center bg-white border border-indigo-200 rounded-lg text-[10px] sm:text-xs text-slate-700 font-medium shadow-sm hover:bg-indigo-50 hover:border-indigo-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
                     >
-                      <span className="truncate px-1">{cmd}</span>
+                      <span className="truncate px-1">{label}</span>
                     </button>
                   ))}
                 </div>
@@ -708,21 +759,36 @@ export default function App() {
         >
           <div
             id="popup-message"
-            className={`relative max-w-md w-full mx-4 px-4 sm:px-6 py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl flex items-center gap-3 sm:gap-4 border-2 ${message.type === 'success' ? 'bg-[#e8f5e9] text-[#2e7d32] border-[#81c784]' : 'bg-[#ffebee] text-[#c62828] border-[#ef5350]'}`}
+            className={`relative max-w-md w-full mx-4 px-4 sm:px-6 py-4 sm:py-5 rounded-xl sm:rounded-2xl shadow-2xl border-2 ${message.type === 'success' ? 'bg-[#e8f5e9] text-[#2e7d32] border-[#81c784]' : 'bg-[#ffebee] text-[#c62828] border-[#ef5350]'}`}
             onClick={(e) => e.stopPropagation()}
           >
-            {message.type === 'success' ? <StarIcon /> : <AlertIcon />}
-            <span className="font-semibold text-sm sm:text-base flex-1">{message.text}</span>
-            <button
-              type="button"
-              onClick={() => setMessage(null)}
-              className="flex-shrink-0 p-1.5 rounded-lg opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-currentColor"
-              aria-label="ปิด"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-3 sm:gap-4">
+              {message.type === 'success' ? <StarIcon /> : <AlertIcon />}
+              <span className="font-semibold text-sm sm:text-base flex-1">{message.text}</span>
+              <button
+                type="button"
+                onClick={() => setMessage(null)}
+                className="flex-shrink-0 p-1.5 rounded-lg opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-currentColor"
+                aria-label="ปิด"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* Next Level Button */}
+            {message.type === 'success' && message.levelComplete && currentLevelIndex < LEVELS.length - 1 && (
+              <button
+                type="button"
+                onClick={goToNextLevel}
+                className="mt-4 w-full py-3 rounded-xl bg-[#ff9800] hover:bg-[#f57c00] text-white font-bold text-base shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              >
+                <span>ไปด่านถัดไป</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       )}
