@@ -4,6 +4,10 @@
 
 **English:** A grid-based turtle movement game for learning algorithmic thinking.
 
+<p align="center">
+  <img src="docs/demo.gif" alt="PyGrid Demo" width="700">
+</p>
+
 ---
 
 ## About / เกี่ยวกับโปรเจกต์
